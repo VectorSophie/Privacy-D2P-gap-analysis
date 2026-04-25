@@ -1,0 +1,86 @@
+project:
+  name: "startup_privacy_analysis"
+  random_seed: 42
+  sample_size: 100
+
+paths:
+  data_raw: "data/raw"
+  data_interim: "data/interim"
+  data_processed: "data/processed"
+  data_external: "data/external"
+  logs: "outputs/logs"
+  figures: "outputs/figures"
+  tables: "outputs/tables"
+  reports: "outputs/reports"
+
+crawling:
+  timeout_ms: 30000
+  headless: true
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  max_bfs_depth: 2
+  retry_count: 3
+  rate_limit_ms: 2000
+  respect_robots_txt: true
+  anchor_keywords:
+    - "개인정보"
+    - "처리방침"
+    - "privacy"
+    - "policy"
+    - "terms"
+  url_heuristics:
+    - "privacy"
+    - "policy"
+    - "terms"
+
+tracking:
+  taxonomy_categories:
+    - "Analytics"
+    - "Advertising"
+    - "Session Replay"
+    - "Social / Embedded Tracking"
+    - "Fingerprinting"
+    - "Unknown Third-party"
+
+llm:
+  model: "gpt-4-turbo"
+  temperature: 0.0
+  use_mock: false      # true로 변경 시 API 키 불필요 (Mock 모드)
+  tiers:
+    - 1
+    - 2
+    - 3
+
+evaluation:
+  baseline_enabled: true
+  manual_verification_samples: 100
+  annotators: 3
+
+collection:
+  target_n: 1000
+  dedup_name_threshold: 0.88
+  sources:
+    manual:
+      enabled: true
+      csv_path: "data/external/seed_companies.csv"
+    msme:
+      enabled: true
+      csv_path: "data/external/msme_ventures_20250228.csv"
+      sector_filter:
+        - "정보처리S/W"
+      max_results: 2000          # 중복제거 후 target_n에 맞춰 잘림
+    kstartup:
+      enabled: false
+      api_key: ""                # 또는 환경변수 KSTARTUP_API_KEY
+      max_results: 200
+      timeout_s: 15
+      service_url: "https://apis.data.go.kr/1090000/VentureFirmInfoService/getVentureFirmInfo"
+    demoday:
+      enabled: false
+      base_url: "https://demoday.co.kr"
+      max_pages: 10
+      rate_limit_ms: 3000
+
+naver_discovery:
+  client_id: ""                  # 또는 환경변수 NAVER_CLIENT_ID
+  client_secret: ""              # 또는 환경변수 NAVER_CLIENT_SECRET
+  rate_limit_ms: 500             # Naver 무료 API: 일 25,000회 한도
