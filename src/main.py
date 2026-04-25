@@ -147,16 +147,21 @@ def extract_policies(config: str = typer.Option(..., help="설정 파일 경로"
 
     html_dir = raw_dir / "html"
     policies = {}
+    low_quality_count = 0
     for html_file in sorted(html_dir.glob("*_policy.html")):
         cid = html_file.stem.replace("_policy", "")
         with open(html_file, "r", encoding="utf-8") as f:
             raw_html = f.read()
-        paragraphs = PolicyExtractor(raw_html).extract()
-        policies[cid] = paragraphs
+        result = PolicyExtractor(raw_html).extract_with_quality()
+        policies[cid] = result
+        if result["quality_flag"] == "low_quality":
+            low_quality_count += 1
 
     with open(interim_dir / "policies.json", "w", encoding="utf-8") as f:
         json.dump(policies, f, ensure_ascii=False, indent=2)
     typer.echo(f"  -> {len(policies)}개 정책 텍스트 저장 완료")
+    if low_quality_count:
+        typer.echo(f"  ⚠ low_quality 항목: {low_quality_count}개 (LLM 평가에서 제외됨)")
 
 
 # ── 4. 트래커 탐지 ────────────────────────────────────────────────────────────
